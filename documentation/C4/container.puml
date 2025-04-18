@@ -1,0 +1,48 @@
+﻿@startuml
+title Smart Home System Architecture
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person_Ext(homeowner, "Homeowner", "Person using the Smart Home system")
+
+System_Boundary(sys1, SmartHomeSystemBoundary) {
+  Container(frontend, "Frontend Application", "Vue.js", "Web application that allows the homeowner to interact with the system")
+  Container(gateway, "API Gateway", "JVM, Java", "Receives requests from the user and forwards them to the appropriate service via Message Bus")
+  Container(climate_service, "Climate Control Service", "JVM, Java", "Service that manages the temperature of the home")
+  ContainerDb(climate_storage, "Storage", "PostgreSQL", "Stores the climate data")
+  Container(lighting_service, "Lighting Service", "JVM, Java", "Service that manages the lighting of the home")
+  ContainerDb(lighting_storage, "Storage", "PostgreSQL", "Stores the lighting data")
+  Container(access_service, "Access Control Service", "JVM, Java", "Service that manages entry points of the home")
+  ContainerDb(access_storage, "Storage", "PostgreSQL", "Stores the access data")
+  Container(protection_service, "Home Protection Service", "JVM, Java", "Service that manages the security of the home")
+  ContainerDb(protection_storage, "Storage", "PostgreSQL", "Stores the security data")
+  ContainerQueue(message_bus, "Message Bus", "Apache Kafka", "Communication channel between devices and services")
+}
+
+Container_Ext(temp_device, "Temperature Sensor", "Raspberry Pi", "Hardware temperature sensing device")
+Container_Ext(light_device, "Smart Light", "Raspberry Pi", "Connected lighting fixture")
+Container_Ext(security_device, "Security Camera", "Raspberry Pi", "Video surveillance device")
+Container_Ext(entry_device, "Entry Control", "Raspberry Pi", "Gate/door control mechanism")
+
+Rel_Neighbor(homeowner, frontend, "Interacts with", "HTTPS")
+Rel(frontend, gateway, "Sends commands to", "HTTPS")
+Rel(gateway, message_bus, "Exchanges messages via", "Kafka")
+Rel(message_bus, climate_service, "Sends temperature commands to", "Kafka")
+Rel(message_bus, lighting_service, "Sends lighting commands to", "Kafka")
+Rel(message_bus, protection_service, "Sends security commands to", "Kafka")
+Rel(message_bus, access_service, "Sends access commands to", "Kafka")
+Rel(climate_service, climate_storage, "Persists data in", "JDBC, TCP")
+Rel(lighting_service, lighting_storage, "Persists data in", "JDBC, TCP")
+Rel(access_service, access_storage, "Persists data in", "JDBC, TCP")
+Rel(protection_service, protection_storage, "Persists data in", "JDBC, TCP")
+Rel(climate_service, temp_device, "Receives readings from", "HTTP")
+Rel(lighting_service, light_device, "Adjusts settings on", "HTTP")
+Rel(protection_service, security_device, "Monitors feeds from", "HTTP")
+Rel(access_service, entry_device, "Operates", "HTTP")
+
+Rel(temp_device, message_bus, "Reports readings to", "Kafka")
+Rel(light_device, message_bus, "Reports status to", "Kafka")
+Rel(security_device, message_bus, "Reports alerts to", "Kafka")
+Rel(entry_device, message_bus, "Reports access events to", "Kafka")
+
+SHOW_LEGEND()
+@enduml

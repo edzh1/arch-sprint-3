@@ -1,0 +1,101 @@
+@startuml
+title Smart Home System Architecture
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+skinparam linetype ortho
+
+Person_Ext(homeowner, "Homeowner", "Person using the Smart Home system")
+
+System_Boundary(sys1, SmartHomeSystemBoundary) {
+  Container_Boundary(frontend, "Frontend Application") {
+    Component(frontend_interface, "Frontend Interface", "Vue.js", "Interactive user interface")
+    Component(frontend_backend, "API Layer", "Node.js", "Backend API services")
+    Component(authentication, "Authentication Service", "Node.js", "Handles user login and authorization")
+  }
+
+  Container_Boundary(gateway, "API Gateway") {
+    Component(gateway_component, "Request Router", "JVM, Java", "Routes incoming requests to appropriate services through Kafka")
+  }
+
+  Container_Boundary(climate_service, "Climate Control Service") {
+    Component(climate_controller, "Climate Controller", "JVM, Java", "Manages home temperature settings")
+    Component(climate_api, "Climate API", "JVM, Java", "Climate service interface")
+    Component(climate_handler, "Climate Data Handler", "JVM, Java", "Processes temperature data")
+    Component(climate_mgmt, "Sensor Management", "JVM, Java", "Communicates with temperature sensors")
+    Component(climate_storage, "Storage", "PostgreSQL", "Climate data storage")
+  }
+
+  Container_Boundary(lighting_service, "Lighting Service") {
+    Component(lighting_controller, "Lighting Controller", "JVM, Java", "Controls home lighting")
+    Component(lighting_api, "Lighting API", "JVM, Java", "Lighting service interface")
+    Component(lighting_handler, "Lighting Handler", "JVM, Java", "Processes lighting data")
+    Component(lighting_mgmt, "Device Management", "JVM, Java", "Controls individual light fixtures")
+    Component(lighting_storage, "Storage", "PostgreSQL", "Lighting configuration storage")
+  }
+
+  Container_Boundary(access_service, "Access Control Service") {
+    Component(access_controller, "Access Controller", "JVM, Java", "Manages home entry points")
+    Component(access_api, "Access API", "JVM, Java", "Access system interface")
+    Component(access_handler, "Access Handler", "JVM, Java", "Processes gate/door commands")
+    Component(access_mgmt, "Entry Management", "JVM, Java", "Controls gates and doors")
+    Component(access_storage, "Storage", "PostgreSQL", "Access logs and settings")
+  }
+
+  Container_Boundary(protection_service, "Home Protection Service") {
+    Component(protection_controller, "Protection Controller", "JVM, Java", "Manages home security")
+    Component(protection_api, "Protection API", "JVM, Java", "Security system interface")
+    Component(protection_handler, "Protection Handler", "JVM, Java", "Processes security alerts")
+    Component(protection_mgmt, "Surveillance Management", "JVM, Java", "Monitors security devices")
+    Component(protection_storage, "Storage", "PostgreSQL", "Security data storage")
+  }
+
+  ComponentQueue(message_bus, "Message Bus", "Apache Kafka", "Communication channel between devices and services")
+}
+
+Component_Ext(temp_device, "Temperature Sensor", "Raspberry Pi", "Hardware temperature sensing device")
+Component_Ext(light_device, "Smart Light", "Raspberry Pi", "Connected lighting fixture")
+Component_Ext(security_device, "Security Camera", "Raspberry Pi", "Video surveillance device")
+Component_Ext(entry_device, "Entry Control", "Raspberry Pi", "Gate/door control mechanism")
+
+Rel_Neighbor(homeowner, frontend_interface, "Interacts with", "HTTPS")
+Rel(frontend_interface, frontend_backend, "Requests data from", "HTTPS")
+Rel(frontend_backend, gateway_component, "Sends commands to", "HTTPS")
+Rel_Neighbor(frontend_backend, authentication, "Verifies user with", "HTTPS")
+
+Rel(gateway_component, message_bus, "Exchanges messages via", "Kafka")
+Rel(message_bus, climate_controller, "Sends temperature commands to", "Kafka")
+Rel(message_bus, lighting_controller, "Sends lighting commands to", "Kafka")
+Rel(message_bus, protection_controller, "Sends security commands to", "Kafka")
+Rel(message_bus, access_controller, "Sends access commands to", "Kafka")
+
+Rel_Down(climate_controller, climate_storage, "Persists data in", "JDBC, TCP")
+Rel_Down(climate_controller, climate_api, "Communicates with", "HTTP")
+Rel_Down(climate_api, climate_handler, "Processes data through", "HTTP")
+Rel_Down(climate_handler, climate_mgmt, "Controls devices via", "HTTP")
+Rel(climate_mgmt, temp_device, "Receives readings from", "HTTP")
+
+Rel_Down(lighting_controller, lighting_storage, "Persists data in", "JDBC, TCP")
+Rel_Down(lighting_controller, lighting_api, "Communicates with", "HTTP")
+Rel_Down(lighting_api, lighting_handler, "Processes data through", "HTTP")
+Rel_Down(lighting_handler, lighting_mgmt, "Controls devices via", "HTTP")
+Rel(lighting_mgmt, light_device, "Adjusts settings on", "HTTP")
+
+Rel_Down(access_controller, access_storage, "Persists data in", "JDBC, TCP")
+Rel_Down(access_controller, access_api, "Communicates with", "HTTP")
+Rel_Down(access_api, access_handler, "Processes data through", "HTTP")
+Rel_Down(access_handler, access_mgmt, "Controls devices via", "HTTP")
+Rel(access_mgmt, entry_device, "Operates", "HTTP")
+
+Rel_Down(protection_controller, protection_storage, "Persists data in", "JDBC, TCP")
+Rel_Down(protection_controller, protection_api, "Communicates with", "HTTP")
+Rel_Down(protection_api, protection_handler, "Processes data through", "HTTP")
+Rel_Down(protection_handler, protection_mgmt, "Controls devices via", "HTTP")
+Rel(protection_mgmt, security_device, "Monitors feeds from", "HTTP")
+
+Rel(temp_device, message_bus, "Reports readings to", "Kafka")
+Rel(light_device, message_bus, "Reports status to", "Kafka")
+Rel(security_device, message_bus, "Reports alerts to", "Kafka")
+Rel(entry_device, message_bus, "Reports access events to", "Kafka")
+
+SHOW_LEGEND()
+@enduml
