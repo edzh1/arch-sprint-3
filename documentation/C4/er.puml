@@ -1,0 +1,78 @@
+@startuml
+
+title Smart Home System Entity-Relationship Diagram
+
+entity "Homeowner" as Homeowner {
+  *id: UUID
+  --
+  username: String
+  email: String
+  password: String
+  role: String
+}
+
+entity "SmartHome" as SmartHome {
+  *id: UUID
+  --
+  address: String
+  name: String
+  owner_id: UUID
+}
+
+entity "SmartDevice" as SmartDevice {
+  *id: UUID
+  --
+  serial_number: String
+  status: String
+  type_id: UUID
+  home_id: UUID
+}
+
+entity "DeviceCategory" as DeviceCategory {
+  *id: UUID
+  --
+  name: String
+  description: String
+}
+
+entity "Component" as Component {
+  *id: UUID
+  --
+  name: String
+  version: String
+  device_id: UUID
+}
+
+entity "SensorData" as SensorData {
+  *id: UUID
+  --
+  timestamp: DateTime
+  data: String
+  device_id: UUID
+}
+
+entity "EntryControl" as EntryControl {
+  *id: UUID
+  --
+  model: String
+  location: String
+  device_id: UUID
+}
+
+entity "TemperatureSensor" as TemperatureSensor {
+  *id: UUID
+  --
+  model: String
+  location: String
+  device_id: UUID
+}
+
+Homeowner }o--o{ SmartHome : "owns"
+SmartHome ||--o{ SmartDevice : "contains"
+SmartDevice ||--|| DeviceCategory : "is of type"
+SmartDevice ||--o{ Component : "has"
+SmartDevice ||--o{ SensorData : "generates"
+SmartDevice ||--o{ EntryControl : "has"
+SmartDevice ||--o{ TemperatureSensor : "connected to"
+
+@enduml

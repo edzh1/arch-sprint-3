@@ -1,0 +1,100 @@
+@startuml
+
+title Smart Home System Class Diagram
+left to right direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+class RequestRouter {
+  +void receiveRequest()
+  +void forwardRequest()
+}
+
+class ClimateController {
+  +void controlTemperature(targetTemp: float)
+  +float getCurrentTemperature()
+  +void adjustTemperature()
+}
+
+class TemperatureSensor {
+  +float readTemperature()
+  +void sendTemperatureData()
+  +void calibrateSensor()
+}
+
+class ClimateAPI {
+  +void getTemperature()
+  +void updateTemperatureSettings(targetTemp: float)
+}
+
+class ClimateDataHandler {
+  +void processTemperatureData(data: float)
+  +void validateTemperature(data: float)
+}
+
+class ClimateStorage {
+  +void saveTemperatureRecord(data: float)
+  +float getTemperatureRecord(id: UUID)
+}
+
+class SensorManagement {
+  +void manageSensors()
+  +void aggregateTemperatureData()
+}
+
+class MessageBus {
+  +void sendMessage(topic: String, message: String)
+  +String receiveMessage(topic: String)
+  +void createTopic(name: String)
+  +void deleteTopic(name: String)
+}
+
+class EntryControl {
+  +void openGate()
+  +void closeGate()
+  +boolean getGateStatus()
+}
+
+class AccessController {
+  +void openGate()
+  +void closeGate()
+  +boolean getGateStatus()
+}
+
+class AccessAPI {
+  +void requestGateOpen()
+  +void requestGateClose()
+}
+
+class AccessHandler {
+  +void handleGateCommand(command: String)
+  +void validateGateStatus()
+}
+
+class EntryManagement {
+  +void monitorGate()
+  +void manageGateAccess()
+}
+
+class AccessStorage {
+  +void saveGateState(state: String)
+  +String getGateState(id: UUID)
+}
+
+TemperatureSensor --> MessageBus : sendsTemperatureData()
+ClimateController --> ClimateAPI : uses
+ClimateDataHandler --> SensorManagement : manages
+SensorManagement --> ClimateStorage : stores
+ClimateAPI --> ClimateDataHandler : processes
+
+MessageBus "1" -- "*" AccessController : "Sends/Receives Data"
+MessageBus "1" -- "*" EntryControl : "Sends Data To"
+MessageBus "1" -- "*" TemperatureSensor : "Receives Data From"
+MessageBus "1" -- "*" ClimateController : "Sends/Receives Data"
+RequestRouter "1" -- "*" MessageBus : "Uses"
+AccessAPI --> AccessHandler : handles
+AccessHandler --> EntryManagement : manages
+EntryManagement --> AccessStorage : stores
+AccessController --> AccessAPI : controls
+
+@enduml

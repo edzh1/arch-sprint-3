@@ -1,0 +1,14 @@
+@startuml
+title Smart Home System Context Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person_Ext(homeowner, "Homeowner", "Person using the Smart Home system")
+System(SmartHomeSystem, "Smart Home System", "System managing the home environment and security")
+
+System_Ext(temp_device, "Temperature Sensor", "Hardware temperature sensing device")
+
+Rel_Neighbor(homeowner, SmartHomeSystem, "Controls home environment", "HTTP")
+Rel(SmartHomeSystem, temp_device, "Receives temperature readings", "HTTP")
+
+SHOW_LEGEND()
+@enduml
